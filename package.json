@@ -4,7 +4,8 @@
   "description": "A competent IRCd in Javascript",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --reporter list",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
@@ -24,5 +25,13 @@
   "bugs": {
     "url": "https://github.com/jahan-addison/arch2ircd/issues"
   },
-  "homepage": "https://github.com/jahan-addison/arch2ircd"
+  "homepage": "https://github.com/jahan-addison/arch2ircd",
+  "devDependencies": {
+    "chai": "^2.1.1",
+    "mocha": "^2.2.1",
+    "sinon": "^1.13.0"
+  },
+  "dependencies": {
+    "babel": "^4.7.8"
+  }
 }
