@@ -1,0 +1,28 @@
+{
+  "name": "arch2ircd",
+  "version": "0.0.1",
+  "description": "A competent IRCd in Javascript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jahan-addison/arch2ircd.git"
+  },
+  "keywords": [
+    "ircd",
+    "irc",
+    "node",
+    "javascript",
+    "network",
+    "rfc",
+    "chat"
+  ],
+  "author": "Jahan Addison",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jahan-addison/arch2ircd/issues"
+  },
+  "homepage": "https://github.com/jahan-addison/arch2ircd"
+}
