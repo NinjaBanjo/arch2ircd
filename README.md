@@ -1,2 +1,2 @@
 # arch2ircd
-A competent IRCd in Javascript
+A competent TDD-built IRCd in Javascript
