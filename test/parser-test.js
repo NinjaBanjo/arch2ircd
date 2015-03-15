@@ -1,49 +1,61 @@
 import Parser from '../lib/parser';
-import * as chai from 'chai';
+import {expect} from 'chai';
+import {flatten} from '../lib/helper';
 
 var stubs = [
-  ':rajaniemi.freenode.net 354 someone 152 #algorithms ~cinch ec2-54-200-172-246.us-west-2.compute.amazonaws.com kornbluth.freenode.net jinji-isr H 0 :cinch',
+  ":rajaniemi.freenode.net 354 someone 152 #algorithms cinch ec2-54-200-172-246.us-west-2.compute.amazonaws.com kornbluth.freenode.net jinji-isr H 0 :cinch\r\n",
   "\r\n",
-  ':someone!~realname@2601:a:6781:2cf3:1c12:a2f3:7c94:b714 JOIN #algorithms user :user',
-  ":someone!~realname@2601:a:6781:2cf3:1c12:a2f3:7c94:b714 PRIVMSG #algorithms\0 user :user",
-  ":someone!~realname@2601:a:6781:2cf3:1c12:a2f3:7c94:b714 PRIVMSG #test\r#test2 user :user",
-  ":someone!~realname@2601:a:6781:2cf3:1c12:a2f3:7c94:b714 PRIVMSG #test\n#test2 user :user"
+  ":I_Am_a_User!~realname@10.21.123.5 JOIN #algorithms user :user\r\n",
+  ":Hello!~realname@10.21.123.5 PRIVMSG #algorithms\0 :user\r\n",
+  ":cowgirl12!~realname@10.21.123.5 PRIVMSG #test\r :user\r\n",
+  ":trollolol!~realname@10.21.123.5 PRIVMSG #test\n :user\r\n",
+  ":rajaniemi.freenode.net 354 someone 152 #algorithms cinch ec2-54-200-172-246.us-west-2.compute.amazonaws.com kornbluth.freenode.net jinji-isr H 0 :cinch"
+];
+
+var expectedErrors = [
+  // CRLF
+  'Expected " ", ":", "\\r", [!-9], [;-\\xFF], [\\x01-\\t], [\\x0B-\\f] or [\\x0E-\\x1F] but end of input found.',
+  // \x00
+  'Expected " ", ":", "\\r", [!-9], [;-\\xFF], [\\x01-\\t], [\\x0B-\\f] or [\\x0E-\\x1F] but "\\x00" found.',  
+  // \x0D
+  'Expected "\\n" but " " found.',
+  // \x0A
+  'Expected " ", ":", "\\r", [!-9], [;-\\xFF], [\\x01-\\t], [\\x0B-\\f] or [\\x0E-\\x1F] but "\\n" found.'
 ];
 
 describe('Parser', () => {
 
-  before(() => {
-    global.expect = chai.expect;
+  it('should parse crlf-delimited messages', () => {
+    expect(() => Parser.parse(stubs[0])).to.not.Throw(SyntaxError);
   });
 
-  it('should parse crlf-delimited messages', () => {
-    expect((new Parser()).parse(stubs[0])).to.not.throw(Exception);
-  });
+  it('should not parse non-crlf-delimited messages', () => {
+    expect(() => Parser.parse(stubs[6])).to.Throw(expectedErrors[0]);    
+  })
 
   it('should parse empty crlf-delimited messages', () => {
-    expect((new Parser()).parse(stubs[1])).to.not.throw(Exception);
+    expect(() => Parser.parse(stubs[1])).to.not.Throw(SyntaxError);
   });
 
   it('should not parse NUL octects', () => {
-    expect((new Parser()).parse(stubs[3])).to.throw(Exception);
+    expect(() => Parser.parse(stubs[3])).to.Throw(expectedErrors[1]);
   });
 
   describe('Prefix', () => {
- 
     it('should parse server name from prefix', () => {
-      expect((new Parser()).parse(stubs[0], 'prefix')[0]).to.equal('rajaniemi.freenode.net');
+      expect(flatten(Parser.parse(stubs[0])[0][1]).join('')).to.equal('rajaniemi.freenode.net');
     });
 
     it('should parse nickname from prefix', () => {
-      expect((new Parser()).parse(stubs[1], 'prefix')[0]).to.equal('someone');
+      expect(flatten(Parser.parse(stubs[2])[0][1][0]).join('')).to.equal('I_Am_a_User');
     });
 
     it('should parse user from prefix', () => {
-      expect((new Parser()).parse(stubs[1], 'prefix')[1]).to.equal('~realname');
+      expect(flatten(Parser.parse(stubs[2])[0][1][1][0][1]).join('')).to.equal('~realname');
     });
 
     it('should parse host from prefix', () => {
-      expect((new Parser()).parse(stubs[1], 'prefix')[2]).to.equal('2601:a:6781:2cf3:1c12:a2f3:7c94:b714');
+      expect(flatten(Parser.parse(stubs[2])[0][1][1][2]).join('')).to.equal('10.21.123.5');
     });
 
   });
@@ -51,7 +63,7 @@ describe('Parser', () => {
   describe('Command', () => {
 
     it('should parse command from message', () => {
-      expect((new Parser()).parse(stubs[2])[1]).to.equal('JOIN');
+      expect(Parser.parse(stubs[2])[1].join('')).to.equal('JOIN');
     });
 
   });
@@ -59,13 +71,13 @@ describe('Parser', () => {
   describe('Parameters', () => {
 
     it('should parse params from message', () => {
-      expect((new Parser()).parse(stubs[1])[2]).to.equal('#algorithms user :user');
+      expect(flatten(Parser.parse(stubs[2])[2]).join('')).to.equal(' #algorithms user :user');
     });
 
     it('should not parse the octets NUL, CR, LF', () => {
-      expect((new Parser()).parse(stubs[3], 'params')).to.throw(Exception);
-      expect((new Parser()).parse(stubs[4], 'params')).to.throw(Exception);
-      expect((new Parser()).parse(stubs[5], 'params')).to.throw(Exception);
+      expect(() => Parser.parse(stubs[3])[2]).to.Throw(expectedErrors[1]);
+      expect(() => Parser.parse(stubs[4])[2]).to.Throw(expectedErrors[2]);
+      expect(() => Parser.parse(stubs[5])[2]).to.Throw(expectedErrors[3]);
     });
 
   });
