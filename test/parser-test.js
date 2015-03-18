@@ -1,6 +1,5 @@
 import Parser from '../lib/parser';
 import {expect} from 'chai';
-import {flatten} from '../lib/helper';
 
 var stubs = [
   ":rajaniemi.freenode.net 354 someone 152 #algorithms cinch ec2-54-200-172-246.us-west-2.compute.amazonaws.com kornbluth.freenode.net jinji-isr H 0 :cinch\r\n",
@@ -43,19 +42,19 @@ describe('Parser', () => {
 
   describe('Prefix', () => {
     it('should parse server name from prefix', () => {
-      expect(flatten(Parser.parse(stubs[0])[0][1]).join('')).to.equal('rajaniemi.freenode.net');
+      expect(Parser.parse(stubs[0])['prefix']['servername']).to.equal('rajaniemi.freenode.net');
     });
 
     it('should parse nickname from prefix', () => {
-      expect(flatten(Parser.parse(stubs[2])[0][1][0]).join('')).to.equal('I_Am_a_User');
+      expect(Parser.parse(stubs[2])['prefix']['nickname']).to.equal('I_Am_a_User');
     });
 
     it('should parse user from prefix', () => {
-      expect(flatten(Parser.parse(stubs[2])[0][1][1][0][1]).join('')).to.equal('~realname');
+      expect(Parser.parse(stubs[2])['prefix']['user']).to.equal('~realname');
     });
 
     it('should parse host from prefix', () => {
-      expect(flatten(Parser.parse(stubs[2])[0][1][1][2]).join('')).to.equal('10.21.123.5');
+      expect(Parser.parse(stubs[2])['prefix']['host']).to.equal('10.21.123.5');
     });
 
   });
@@ -63,7 +62,7 @@ describe('Parser', () => {
   describe('Command', () => {
 
     it('should parse command from message', () => {
-      expect(Parser.parse(stubs[2])[1].join('')).to.equal('JOIN');
+      expect(Parser.parse(stubs[2])['command']).to.equal('JOIN');
     });
 
   });
@@ -71,13 +70,13 @@ describe('Parser', () => {
   describe('Parameters', () => {
 
     it('should parse params from message', () => {
-      expect(flatten(Parser.parse(stubs[2])[2]).join('')).to.equal(' #algorithms user :user');
+      expect(Parser.parse(stubs[2])['params']).to.deep.equal([['#algorithms', 'user'], 'user']);
     });
 
     it('should not parse the octets NUL, CR, LF', () => {
-      expect(() => Parser.parse(stubs[3])[2]).to.Throw(expectedErrors[1]);
-      expect(() => Parser.parse(stubs[4])[2]).to.Throw(expectedErrors[2]);
-      expect(() => Parser.parse(stubs[5])[2]).to.Throw(expectedErrors[3]);
+      expect(() => Parser.parse(stubs[3])['params']).to.Throw(expectedErrors[1]);
+      expect(() => Parser.parse(stubs[4])['params']).to.Throw(expectedErrors[2]);
+      expect(() => Parser.parse(stubs[5])['params']).to.Throw(expectedErrors[3]);
     });
 
   });
